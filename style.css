@@ -92,6 +92,21 @@ body {
     text-align: left;
 }
 
+.info-icon {
+    display: inline-block;
+    margin-left: 4px;
+    cursor: help;
+    font-size: 10px;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+    vertical-align: middle;
+    color: #776e65;
+}
+
+.info-icon:hover {
+    opacity: 0.8;
+}
+
 .depth-control-wrapper {
     display: flex;
     align-items: center;
@@ -293,12 +308,17 @@ body {
 /* Monitor de Treino */
 .training-monitor {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin: 0 auto 15px;
+}
+
+.monitor-row {
+    display: flex;
     gap: 8px;
     justify-content: center;
-    flex-wrap: wrap;
-    width: 700px;
-    margin: 0 auto 15px;
-    align-items: flex-start;
+    width: 100%;
 }
 
 .monitor-item {
@@ -306,7 +326,9 @@ body {
     border: 1px solid #d7ccc8;
     border-radius: 6px;
     padding: 8px 6px;
-    width: 90px;
+    flex: 1;
+    max-width: 110px;
+    min-width: 90px;
     height: 70px;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -315,6 +337,11 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.monitor-item-highlight {
+    background: #e0d4c8;
+    border: 1px solid #d0c4b8;
 }
 
 .monitor-item:hover {
@@ -431,15 +458,15 @@ body {
 
 /* Grid do Melhor Agente */
 .best-agent-grid {
-    width: 160px;
-    height: 160px;
+    width: 120px;
+    height: 120px;
     background: #bbada0;
     border-radius: 6px;
-    padding: 7px;
+    padding: 5px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
-    gap: 5px;
+    gap: 4px;
     flex-shrink: 0;
 }
 
@@ -502,11 +529,11 @@ body {
 .best-agent-grid .tile-16 { background: #f59563; color: white; }
 .best-agent-grid .tile-32 { background: #f67c5f; color: white; }
 .best-agent-grid .tile-64 { background: #f65e3b; color: white; }
-.best-agent-grid .tile-128 { background: #edcf72; color: white; font-size: 14px; }
-.best-agent-grid .tile-256 { background: #edcc61; color: white; font-size: 14px; }
-.best-agent-grid .tile-512 { background: #edc850; color: white; font-size: 12px; }
-.best-agent-grid .tile-1024 { background: #edc53f; color: white; font-size: 10px; }
-.best-agent-grid .tile-2048 { background: #edc22e; color: white; font-size: 10px; }
+.best-agent-grid .tile-128 { background: #edcf72; color: white; font-size: 11px; }
+.best-agent-grid .tile-256 { background: #edcc61; color: white; font-size: 11px; }
+.best-agent-grid .tile-512 { background: #edc850; color: white; font-size: 10px; }
+.best-agent-grid .tile-1024 { background: #edc53f; color: white; font-size: 9px; }
+.best-agent-grid .tile-2048 { background: #edc22e; color: white; font-size: 9px; }
 
 /* Métricas */
 .metrics-title {
@@ -554,12 +581,27 @@ body {
     margin-top: 0;
     margin-bottom: 0;
     padding-top: 10px;
-    padding-bottom: 0;
+    padding-bottom: 10px;
     border-top: 1px solid #d7ccc8;
+    border-bottom: 1px solid #d7ccc8;
     height: 180px;
 }
 
 .metric-card:has(#best-score-timeline-chart) .metric-chart {
+    height: 150px !important;
+    max-height: 150px !important;
+    width: 100% !important;
+}
+
+.metric-card:has(#success-rate-timeline-chart) {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 10px;
+    padding-bottom: 0;
+    height: 180px;
+}
+
+.metric-card:has(#success-rate-timeline-chart) .metric-chart {
     height: 150px !important;
     max-height: 150px !important;
     width: 100% !important;
@@ -646,15 +688,15 @@ body {
 
 /* Heatmap usa o mesmo estilo do best-agent-grid */
 #position-heatmap {
-    width: 160px;
-    height: 160px;
+    width: 120px;
+    height: 120px;
     background: #bbada0;
     border-radius: 6px;
-    padding: 7px;
+    padding: 5px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
-    gap: 5px;
+    gap: 4px;
     flex-shrink: 0;
 }
 
@@ -675,9 +717,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 10px;
+    font-weight: 600;
     color: #776e65;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #position-heatmap .tile-2 { background: #eee4da; }
@@ -686,11 +731,16 @@ body {
 #position-heatmap .tile-16 { background: #f59563; color: white; }
 #position-heatmap .tile-32 { background: #f67c5f; color: white; }
 #position-heatmap .tile-64 { background: #f65e3b; color: white; }
-#position-heatmap .tile-128 { background: #edcf72; color: white; font-size: 14px; }
-#position-heatmap .tile-256 { background: #edcc61; color: white; font-size: 14px; }
-#position-heatmap .tile-512 { background: #edc850; color: white; font-size: 12px; }
-#position-heatmap .tile-1024 { background: #edc53f; color: white; font-size: 10px; }
-#position-heatmap .tile-2048 { background: #edc22e; color: white; font-size: 10px; }
+#position-heatmap .tile-128 { background: #edcf72; color: white; font-size: 11px; }
+#position-heatmap .tile-256 { background: #edcc61; color: white; font-size: 11px; }
+#position-heatmap .tile-512 { background: #edc850; color: white; font-size: 10px; }
+#position-heatmap .tile-1024 { background: #edc53f; color: white; font-size: 9px; }
+#position-heatmap .tile-2048 { background: #edc22e; color: white; font-size: 9px; }
+
+#position-heatmap .tile {
+    font-size: 10px;
+    font-weight: 600;
+}
 
 .score-ranges {
     display: flex;

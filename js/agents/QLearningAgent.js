@@ -37,6 +37,10 @@ class QLearningAgent {
     setEpsilon(eps) {
         this.epsilon = Math.max(0, Math.min(1, eps));
     }
+    
+    setDiscountFactor(df) {
+        this.discountFactor = Math.max(0, Math.min(1, df));
+    }
 
     /**
      * Seleciona um movimento usando Q-Learning
@@ -185,4 +189,5 @@ class QLearningAgent {
         return `${uniqueValues.join(',')}_${maxTile}_${maxTilePos}_${emptyCount}`;
     }
 }
+
 

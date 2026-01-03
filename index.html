@@ -24,12 +24,26 @@
                         <option value="expectimax">Expectimax</option>
                         <option value="montecarlo">Monte Carlo</option>
                         <option value="qlearning">Q-Learning</option>
+                        <option value="sarsa">SARSA</option>
+                        <option value="tdlearning">TD-Learning</option>
+                        <option value="astar">A* Search</option>
+                        <option value="beamsearch">Beam Search</option>
+                        <option value="iterativedeepening">Iterative Deepening</option>
+                        <option value="mcts">MCTS</option>
+                        <option value="geneticalgorithm">Genetic Algorithm</option>
+                        <option value="policygradient">Policy Gradient</option>
+                        <option value="neuralnetwork">Neural Network</option>
+                        <option value="dqn">DQN</option>
+                        <option value="actorcritic">Actor-Critic</option>
                     </select>
                 </div>
                 
                 <!-- Controle de Profundidade para Expectimax e Minimax -->
                 <div class="control-group" id="depth-control" style="display: none;">
-                    <label for="depth-slider">Profundidade:</label>
+                    <label for="depth-slider">
+                        Profundidade (1-5):
+                        <span class="info-icon" title="Quantos movimentos à frente o algoritmo considera. Valores altos são mais precisos mas muito mais lentos. Valores baixos são rápidos mas podem perder estratégias ótimas.">ℹ️</span>
+                    </label>
                     <div class="depth-control-wrapper">
                         <input type="range" id="depth-slider" min="1" max="5" value="3" step="1">
                         <span id="depth-value">3</span>
@@ -38,7 +52,10 @@
                 
                 <!-- Controle de Simulações para Monte Carlo -->
                 <div class="control-group" id="simulations-control" style="display: none;">
-                    <label for="simulations-slider">Simulações:</label>
+                    <label for="simulations-slider">
+                        Simulações (10-200):
+                        <span class="info-icon" title="Número de simulações aleatórias executadas para avaliar cada movimento. Mais simulações = melhor precisão mas muito mais lento. Menos simulações = mais rápido mas menos confiável.">ℹ️</span>
+                    </label>
                     <div class="depth-control-wrapper">
                         <input type="range" id="simulations-slider" min="10" max="200" value="50" step="10">
                         <span id="simulations-value">50</span>
@@ -47,10 +64,85 @@
                 
                 <!-- Controle de Epsilon para Q-Learning -->
                 <div class="control-group" id="epsilon-control" style="display: none;">
-                    <label for="epsilon-slider">Exploração (ε):</label>
+                    <label for="epsilon-slider">
+                        Exploração (ε) (0.0-1.0):
+                        <span class="info-icon" title="Balanceamento entre explorar novas ações (tentar coisas novas) e explorar ações conhecidas (usar o que já aprendeu). Valores altos exploram mais, valores baixos exploram mais. Ideal: começar alto e diminuir com o tempo.">ℹ️</span>
+                    </label>
                     <div class="depth-control-wrapper">
                         <input type="range" id="epsilon-slider" min="0" max="100" value="10" step="5">
                         <span id="epsilon-value">0.1</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Learning Rate -->
+                <div class="control-group" id="learningrate-control" style="display: none;">
+                    <label for="learningrate-slider">
+                        Taxa de Aprendizado (0.01-1.0):
+                        <span class="info-icon" title="Controla a velocidade do aprendizado. Valores altos aprendem rápido mas podem ser instáveis. Valores baixos são mais estáveis mas aprendem devagar.">ℹ️</span>
+                    </label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="learningrate-slider" min="1" max="100" value="10" step="1">
+                        <span id="learningrate-value">0.1</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Discount Factor -->
+                <div class="control-group" id="discountfactor-control" style="display: none;">
+                    <label for="discountfactor-slider">
+                        Fator de Desconto (0.0-1.0):
+                        <span class="info-icon" title="Quanto o agente valoriza recompensas futuras vs. imediatas. Valores altos (próximos de 1) planejam mais à frente. Valores baixos focam em recompensas imediatas.">ℹ️</span>
+                    </label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="discountfactor-slider" min="0" max="100" value="90" step="5">
+                        <span id="discountfactor-value">0.9</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Lambda (TD-Learning) -->
+                <div class="control-group" id="lambda-control" style="display: none;">
+                    <label for="lambda-slider">
+                        Lambda (0.0-1.0):
+                        <span class="info-icon" title="Parâmetro de elegibilidade para TD(λ). Controla o trade-off entre TD(0) e Monte Carlo. Valores altos consideram mais histórico, valores baixos focam em diferenças temporais imediatas.">ℹ️</span>
+                    </label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="lambda-slider" min="0" max="100" value="70" step="5">
+                        <span id="lambda-value">0.7</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Exploration Constant (MCTS) -->
+                <div class="control-group" id="explorationconstant-control" style="display: none;">
+                    <label for="explorationconstant-slider">
+                        Constante de Exploração (0.5-2.0):
+                        <span class="info-icon" title="Controla o balanceamento entre exploração e exploração no MCTS (UCB1). Valores altos exploram mais, valores baixos exploram mais. Padrão: 1.41 (raiz de 2).">ℹ️</span>
+                    </label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="explorationconstant-slider" min="50" max="200" value="141" step="5">
+                        <span id="explorationconstant-value">1.41</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Mutation Rate (Genetic Algorithm) -->
+                <div class="control-group" id="mutationrate-control" style="display: none;">
+                    <label for="mutationrate-slider">
+                        Taxa de Mutação (0.0-0.5):
+                        <span class="info-icon" title="Probabilidade de mutação em cada gene durante a evolução. Valores altos introduzem mais variação mas podem desestabilizar. Valores baixos são mais conservadores.">ℹ️</span>
+                    </label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="mutationrate-slider" min="0" max="50" value="10" step="1">
+                        <span id="mutationrate-value">0.1</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Beam Width (Beam Search) -->
+                <div class="control-group" id="beamwidth-control" style="display: none;">
+                    <label for="beamwidth-slider">
+                        Largura do Feixe (1-10):
+                        <span class="info-icon" title="Número de melhores caminhos mantidos em cada nível. Valores altos exploram mais mas são mais lentos. Valores baixos são rápidos mas podem perder soluções ótimas.">ℹ️</span>
+                    </label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="beamwidth-slider" min="1" max="10" value="3" step="1">
+                        <span id="beamwidth-value">3</span>
                     </div>
                 </div>
             
@@ -78,30 +170,68 @@
             
             <!-- Monitor de Treino -->
             <div class="training-monitor">
-                <div class="monitor-item">
-                    <div class="monitor-label">Jogos Finalizados</div>
-                    <div class="monitor-value" id="games-finished">0</div>
+                <!-- Linha 1: Indicadores Principais -->
+                <div class="monitor-row">
+                    <div class="monitor-item">
+                        <div class="monitor-label">Tempo Decorrido</div>
+                        <div class="monitor-value" id="train-time">00:00:00</div>
+                    </div>
+                    <div class="monitor-item">
+                        <div class="monitor-label">Jogos Finalizados</div>
+                        <div class="monitor-value" id="games-finished">0</div>
+                    </div>
+                    <div class="monitor-item">
+                        <div class="monitor-label">Pontos/Segundo</div>
+                        <div class="monitor-value" id="points-per-second">0</div>
+                        <div class="monitor-subvalue" id="points-per-second-desc">Jogos Ativos</div>
+                    </div>
+                    <div class="monitor-item monitor-item-highlight">
+                        <div class="monitor-label">Maior Peça</div>
+                        <div class="monitor-value" id="max-tile-finished">0</div>
+                        <div class="monitor-subvalue" id="max-tile-desc">Finalizados</div>
+                    </div>
+                    <div class="monitor-item monitor-item-highlight">
+                        <div class="monitor-label">Desvio Padrão</div>
+                        <div class="monitor-value" id="std-dev">0</div>
+                        <div class="monitor-subvalue" id="std-dev-desc">Consistência</div>
+                    </div>
+                    <div class="monitor-item monitor-item-highlight">
+                        <div class="monitor-label">Score/Movimento</div>
+                        <div class="monitor-value" id="score-per-move">0</div>
+                        <div class="monitor-subvalue" id="score-per-move-desc">Eficiência</div>
+                    </div>
                 </div>
-                <div class="monitor-item">
-                    <div class="monitor-label">Tempo Decorrido</div>
-                    <div class="monitor-value" id="train-time">00:00:00</div>
-                </div>
-                <div class="monitor-item">
-                    <div class="monitor-label">Velocidade (MPS)</div>
-                    <div class="monitor-value" id="speed">0</div>
-                </div>
-                <div class="monitor-item">
-                    <div class="monitor-label">Peça Recorde</div>
-                    <div class="monitor-value" id="best-tile">0</div>
-                </div>
-                <div class="monitor-item">
-                    <div class="monitor-label">Score Médio</div>
-                    <div class="monitor-value" id="avg-score">0</div>
-                </div>
-                <div class="monitor-item">
-                    <div class="monitor-label">Taxa de Sucesso</div>
-                    <div class="monitor-value" id="success-rate">0%</div>
-                    <div class="monitor-subvalue" id="games-2048-count">0 com 2048</div>
+                
+                <!-- Linha 2: Indicadores Secundários -->
+                <div class="monitor-row">
+                    <div class="monitor-item">
+                        <div class="monitor-label">Velocidade (MPS)</div>
+                        <div class="monitor-value" id="speed">0</div>
+                    </div>
+                    <div class="monitor-item">
+                        <div class="monitor-label">Score Médio</div>
+                        <div class="monitor-value" id="avg-score">0</div>
+                    </div>
+                    <div class="monitor-item">
+                        <div class="monitor-label">Eficiência</div>
+                        <div class="monitor-value" id="efficiency">0</div>
+                        <div class="monitor-subvalue" id="efficiency-desc">Pontos/Mov.</div>
+                    </div>
+                    <div class="monitor-item monitor-item-highlight">
+                        <div class="monitor-label">Tempo até 2048</div>
+                        <div class="monitor-value" id="time-to-2048">-</div>
+                        <div class="monitor-subvalue" id="time-to-2048-desc">Segundos</div>
+                    </div>
+                    <div class="monitor-item monitor-item-highlight">
+                        <div class="monitor-label">Movimentos Médios</div>
+                        <div class="monitor-value" id="avg-moves-finished">0</div>
+                        <div class="monitor-subvalue" id="avg-moves-desc">Por jogo</div>
+                    </div>
+                    <div class="monitor-item monitor-item-highlight">
+                        <div class="monitor-label">Taxa de Sucesso</div>
+                        <div class="monitor-value" id="success-rate">0%</div>
+                        <div class="monitor-subvalue" id="games-2048-count">0 com 2048</div>
+                    </div>
                 </div>
             </div>
 
@@ -115,15 +245,15 @@
         <div class="sidebar right-sidebar">
             <h3>Análise</h3>
             
-            <!-- Melhor Indivíduo Ever -->
-            <div class="best-individual-label">Melhor Indivíduo Ever</div>
+            <!-- Melhor Jogada -->
+            <div class="best-individual-label">Melhor Jogada</div>
             
             <!-- Grid do melhor agente -->
             <div class="best-individual-wrapper">
                 <div id="best-agent-grid" class="best-agent-grid"></div>
                 <div class="best-individual-info">
                     <div class="best-individual-explanation">
-                        Melhor jogo finalizado de todos os tempos. Considera apenas jogos que terminaram.
+                        Melhor jogada de todos os tempos. Considera apenas jogos que terminaram.
                     </div>
                     <!-- Pontuação Máxima -->
                     <div class="best-score-text">
@@ -143,9 +273,9 @@
                 </div>
             </div>
             
-            <!-- Distribuição de Pontuações -->
+            <!-- Histograma de frequências -->
             <div class="metric-card">
-                <div class="metric-label">Distribuição de Pontuações</div>
+                <div class="metric-label">Histograma de frequências</div>
                 <canvas id="score-distribution-chart" class="metric-chart"></canvas>
             </div>
             
@@ -153,6 +283,12 @@
             <div class="metric-card">
                 <div class="metric-label">Melhor Indivíduo por Segundo</div>
                 <canvas id="best-score-timeline-chart" class="metric-chart"></canvas>
+            </div>
+            
+            <!-- Gráfico de Linha - Taxa de Sucesso por Segundo -->
+            <div class="metric-card">
+                <div class="metric-label">Taxa de Sucesso por Segundo</div>
+                <canvas id="success-rate-timeline-chart" class="metric-chart"></canvas>
             </div>
             
         </div>
@@ -172,6 +308,17 @@
     <script src="js/agents/ExpectimaxAgent.js"></script>
     <script src="js/agents/MonteCarloAgent.js"></script>
     <script src="js/agents/QLearningAgent.js"></script>
+    <script src="js/agents/SARSAAgent.js"></script>
+    <script src="js/agents/TDLearningAgent.js"></script>
+    <script src="js/agents/AStarAgent.js"></script>
+    <script src="js/agents/BeamSearchAgent.js"></script>
+    <script src="js/agents/IterativeDeepeningAgent.js"></script>
+    <script src="js/agents/MCTSAgent.js"></script>
+    <script src="js/agents/GeneticAlgorithmAgent.js"></script>
+    <script src="js/agents/PolicyGradientAgent.js"></script>
+    <script src="js/agents/NeuralNetworkAgent.js"></script>
+    <script src="js/agents/DQNAgent.js"></script>
+    <script src="js/agents/ActorCriticAgent.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
