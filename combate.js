@@ -1001,7 +1001,130 @@ function getSelectedModels() {
     });
 }
 
-// Cria agente
+/**
+ * Cria um agente a partir de um modelo treinado salvo
+ * @param {string} modelId - ID do modelo treinado
+ * @returns {Object|null} - Instância do agente ou null se houver erro
+ */
+function createAgentFromTrainedModel(modelId) {
+    try {
+        const data = JSON.parse(localStorage.getItem(`trained_model_${modelId}`));
+        if (!data || !data.metadata) {
+            console.error('Modelo treinado não encontrado:', modelId);
+            return null;
+        }
+        
+        const agentType = data.metadata.agentType;
+        let agent = createAgent(agentType);
+        
+        if (!agent) {
+            console.error('Erro ao criar agente do tipo:', agentType);
+            return null;
+        }
+        
+        // Carrega dados aprendidos
+        if (agent.qTable && data.qTable) {
+            agent.qTable = new Map(Object.entries(data.qTable));
+        }
+        if (data.heuristicWeights && agent.weights) {
+            agent.weights = data.heuristicWeights;
+        }
+        if (agent.weights && data.weights && Array.isArray(data.weights)) {
+            agent.weights = data.weights;
+        }
+        if (data.networkWeights && agent.qNetwork) {
+            try {
+                const weights = data.networkWeights.map(w => tf.tensor(w));
+                agent.qNetwork.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos da rede neural:', e);
+            }
+        }
+        if (data.modelWeights && agent.model) {
+            try {
+                const weights = data.modelWeights.map(w => tf.tensor(w));
+                agent.model.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos do modelo:', e);
+            }
+        }
+        if (data.actorWeights && agent.actor) {
+            try {
+                const weights = data.actorWeights.map(w => tf.tensor(w));
+                agent.actor.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos do actor:', e);
+            }
+        }
+        if (data.criticWeights && agent.critic) {
+            try {
+                const weights = data.criticWeights.map(w => tf.tensor(w));
+                agent.critic.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos do critic:', e);
+            }
+        }
+        if (data.population && agent.population) {
+            agent.population = data.population;
+            agent.generation = data.generation || 0;
+        }
+        
+        // Aplica parâmetros de calibração salvos
+        if (data.parameters) {
+            const params = data.parameters;
+            
+            // Parâmetros de aprendizado
+            if (params.learningRate !== undefined && agent.setLearningRate) {
+                agent.setLearningRate(params.learningRate);
+            }
+            if (params.discountFactor !== undefined && agent.setDiscountFactor) {
+                agent.setDiscountFactor(params.discountFactor);
+            }
+            if (params.epsilon !== undefined && agent.setEpsilon) {
+                agent.setEpsilon(params.epsilon);
+            }
+            if (params.lambda !== undefined && agent.setLambda) {
+                agent.setLambda(params.lambda);
+            }
+            if (params.explorationConstant !== undefined && agent.setExplorationConstant) {
+                agent.setExplorationConstant(params.explorationConstant);
+            }
+            
+            // Parâmetros de busca
+            if (params.maxDepth !== undefined && agent.setMaxDepth) {
+                agent.setMaxDepth(params.maxDepth);
+            }
+            if (params.depth !== undefined && agent.setMaxDepth) {
+                agent.setMaxDepth(params.depth);
+            }
+            if (params.simulations !== undefined && agent.setSimulations) {
+                agent.setSimulations(params.simulations);
+            }
+            if (params.beamWidth !== undefined && agent.setBeamWidth) {
+                agent.setBeamWidth(params.beamWidth);
+            }
+            
+            // Parâmetros genéticos
+            if (params.mutationRate !== undefined && agent.setMutationRate) {
+                agent.setMutationRate(params.mutationRate);
+            }
+            if (params.populationSize !== undefined && agent.setPopulationSize) {
+                agent.setPopulationSize(params.populationSize);
+            }
+        }
+        
+        return agent;
+    } catch (e) {
+        console.error('Erro ao criar agente de modelo treinado:', e);
+        return null;
+    }
+}
+
+/**
+ * Cria uma instância de agente baseado no tipo
+ * @param {string} agentType - Tipo do agente ('random', 'greedy', 'qlearning', etc.)
+ * @returns {Object} - Instância do agente
+ */
 function createAgent(agentType) {
     // Tenta carregar parâmetros salvos primeiro
     const saved = localStorage.getItem(`agent_${agentType}`);
