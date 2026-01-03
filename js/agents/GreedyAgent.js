@@ -15,6 +15,7 @@ class GreedyAgent {
      */
     selectMove(game) {
         const scores = {};
+        let hasValidMove = false;
         
         // Testa cada movimento possível
         for (const move of this.moves) {
@@ -26,14 +27,25 @@ class GreedyAgent {
                 continue;
             }
             
+            hasValidMove = true;
             // Score é a diferença de pontuação após o movimento
             scores[move] = testGame.score - game.score;
+        }
+        
+        // Se não há movimentos válidos, retorna null
+        if (!hasValidMove) {
+            return null;
         }
         
         // Retorna o movimento com maior ganho de pontuação
         const bestMove = Object.keys(scores).reduce((a, b) => 
             scores[a] > scores[b] ? a : b
         );
+        
+        // Verifica se o melhor movimento é válido
+        if (scores[bestMove] === -Infinity) {
+            return null;
+        }
         
         return bestMove;
     }

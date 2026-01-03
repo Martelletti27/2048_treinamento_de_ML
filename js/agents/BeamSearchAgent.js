@@ -19,8 +19,33 @@ class BeamSearchAgent {
     }
     
     selectMove(game) {
+        // Verifica se há movimentos válidos
+        let hasValidMove = false;
+        for (const move of this.moves) {
+            const testGame = game.clone();
+            if (testGame.makeMove(move)) {
+                hasValidMove = true;
+                break;
+            }
+        }
+        
+        if (!hasValidMove) {
+            return null;
+        }
+        
         const result = this.beamSearch(game);
-        return result.bestMove || this.moves[Math.floor(Math.random() * this.moves.length)];
+        // Se não encontrou movimento válido, tenta encontrar qualquer movimento válido
+        if (!result.bestMove) {
+            for (const move of this.moves) {
+                const testGame = game.clone();
+                if (testGame.makeMove(move)) {
+                    return move;
+                }
+            }
+            return null;
+        }
+        
+        return result.bestMove;
     }
     
     /**

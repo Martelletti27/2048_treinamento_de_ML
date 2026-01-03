@@ -8,12 +8,6 @@ class GeneticAlgorithmAgent {
         this.moves = ['up', 'down', 'left', 'right'];
         this.populationSize = populationSize;
         this.mutationRate = mutationRate;
-    }
-    
-    setMutationRate(mr) {
-        this.mutationRate = Math.max(0, Math.min(0.5, mr));
-    }
-        
         // População de estratégias (cada uma é um conjunto de pesos heurísticos)
         this.population = [];
         this.generation = 0;
@@ -21,6 +15,10 @@ class GeneticAlgorithmAgent {
         this.strategyIndex = 0;
         
         this.initializePopulation();
+    }
+    
+    setMutationRate(mr) {
+        this.mutationRate = Math.max(0, Math.min(0.5, mr));
     }
     
     /**

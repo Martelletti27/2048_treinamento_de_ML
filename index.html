@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 - Treinamento de IA</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="layout-wrapper">
         <!-- Painel Esquerdo: Controle de Treino -->
         <div class="sidebar left-sidebar">
+            <div class="nav-quick-access">
+                <a href="combate.html" class="nav-link">
+                    <i class="fas fa-swords"></i> Combate
+                </a>
+            </div>
+            
             <h3>Controle de Treino</h3>
             
                 <div class="control-group">
@@ -146,9 +153,42 @@
                     </div>
                 </div>
             
-            <div class="control-group buttons-group">
-                <button id="btn-run">▶ Iniciar</button>
-                <button id="btn-reset">↻ Reset</button>
+            <div class="control-group buttons-group training-buttons">
+                <button id="btn-run" class="training-btn btn-start">
+                    <i class="fas fa-play"></i> Iniciar
+                </button>
+                <button id="btn-reset" class="training-btn btn-reset-training">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button id="btn-save" class="training-btn btn-save-training">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+            
+            <!-- Botão para abrir modal de modelos treinados -->
+            <div class="control-group" style="margin-top: 15px;">
+                <button id="btn-open-models" style="width: 100%; padding: 10px; background: rgba(245, 149, 99, 0.2); border: 1px solid rgba(245, 149, 99, 0.4); border-radius: 6px; color: #f59563; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    <i class="fas fa-database"></i> Modelos Treinados
+                </button>
+            </div>
+            
+            <!-- Modal de Modelos Treinados -->
+            <div id="trained-models-modal" class="modal-overlay" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 style="color: #f59563; margin: 0; font-size: 18px;">
+                            <i class="fas fa-database"></i> Modelos Treinados
+                        </h3>
+                        <button class="modal-close" id="btn-close-models" style="background: transparent; border: none; color: #e2e8f0; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="trained-models-list">
+                        <div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 40px;">
+                            Nenhum modelo treinado ainda
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Explicação do Modelo -->
@@ -166,7 +206,7 @@
         <!-- Painel Central: Grade de Jogos e Monitor -->
         <div class="center-panel">
             <!-- Título Treinamento -->
-            <h3 class="training-title">Treinamento</h3>
+            <h2 class="training-title"><i class="fas fa-graduation-cap"></i> TREINAMENTO</h2>
             
             <!-- Monitor de Treino -->
             <div class="training-monitor">

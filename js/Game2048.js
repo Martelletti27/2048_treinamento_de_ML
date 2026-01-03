@@ -169,31 +169,38 @@ class Game2048 {
     }
 
     /**
-     * Verifica se o jogo acabou
+     * Verifica se há movimentos válidos disponíveis
+     * @returns {boolean} - true se há pelo menos um movimento válido
      */
-    checkForGameOver() {
-        // Verifica se há células vazias
+    hasValidMoves() {
+        // Se há células vazias, sempre há movimentos válidos
         if (this.grid.some(cell => cell === 0)) {
-            this.isGameOver = false;
-            return;
+            return true;
         }
 
-        // Verifica se há movimentos possíveis
+        // Verifica se há possibilidade de combinar peças adjacentes
         for (let i = 0; i < 16; i++) {
             const val = this.grid[i];
+            if (val === 0) continue;
+            
             // Verifica direita
             if ((i + 1) % 4 !== 0 && this.grid[i + 1] === val) {
-                this.isGameOver = false;
-                return;
+                return true;
             }
             // Verifica baixo
             if (i + 4 < 16 && this.grid[i + 4] === val) {
-                this.isGameOver = false;
-                return;
+                return true;
             }
         }
 
-        this.isGameOver = true;
+        return false;
+    }
+
+    /**
+     * Verifica se o jogo acabou
+     */
+    checkForGameOver() {
+        this.isGameOver = !this.hasValidMoves();
     }
 
     /**
@@ -244,4 +251,5 @@ class Game2048 {
         return cloned;
     }
 }
+
 

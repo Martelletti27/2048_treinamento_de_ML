@@ -74,6 +74,52 @@ function init() {
     // Configura eventos
     document.getElementById('btn-run').addEventListener('click', toggleTraining);
     document.getElementById('btn-reset').addEventListener('click', resetSystem);
+    document.getElementById('btn-save').addEventListener('click', function() {
+        saveAgentModel();
+        // Feedback visual
+        const btn = document.getElementById('btn-save');
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Salvo!';
+        btn.style.background = 'rgba(76, 175, 80, 0.3)';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+        }, 2000);
+    });
+    
+    // Configura modal de modelos treinados
+    const btnOpenModels = document.getElementById('btn-open-models');
+    const modal = document.getElementById('trained-models-modal');
+    const btnCloseModels = document.getElementById('btn-close-models');
+    
+    if (btnOpenModels) {
+        btnOpenModels.addEventListener('click', function() {
+            updateTrainedModelsList();
+            if (modal) modal.style.display = 'flex';
+        });
+    }
+    
+    if (btnCloseModels) {
+        btnCloseModels.addEventListener('click', function() {
+            if (modal) modal.style.display = 'none';
+        });
+    }
+    
+    // Fecha modal ao clicar fora
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Fecha modal com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        }
+    });
     
     // Configura seletor de modelo
     const agentSelect = document.getElementById('agent-select');
@@ -195,8 +241,610 @@ function init() {
     // Inicializa métricas avançadas
     updateAdvancedMetrics();
     
+    // Atualiza lista de modelos treinados
+    updateTrainedModelsList();
+    
     // Inicia loop de renderização (mesmo quando pausado)
     trainingLoop();
+}
+
+// Atualiza lista de modelos treinados
+function updateTrainedModelsList() {
+    const listContainer = document.getElementById('trained-models-list');
+    if (!listContainer) return;
+    
+    // Busca todos os modelos treinados no localStorage
+    const trainedModels = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('trained_model_')) {
+            try {
+                const data = JSON.parse(localStorage.getItem(key));
+                if (data.metadata) {
+                    trainedModels.push({
+                        id: data.metadata.id,
+                        name: data.metadata.name,
+                        agentType: data.metadata.agentType,
+                        agentName: data.metadata.agentName,
+                        savedAt: new Date(data.metadata.savedAt)
+                    });
+                }
+            } catch (e) {
+                console.warn('Erro ao ler modelo treinado:', e);
+            }
+        }
+    }
+    
+    // Ordena por data (mais recente primeiro)
+    trainedModels.sort((a, b) => b.savedAt - a.savedAt);
+    
+    // Renderiza lista
+    if (trainedModels.length === 0) {
+        listContainer.innerHTML = `
+            <div style="color: #94a3b8; font-size: 11px; text-align: center; padding: 20px;">
+                Nenhum modelo treinado ainda
+            </div>
+        `;
+        return;
+    }
+    
+    listContainer.innerHTML = trainedModels.map(model => {
+        const dateStr = model.savedAt.toLocaleDateString('pt-BR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        return `
+            <div class="trained-model-item" data-model-id="${model.id}" style="
+                padding: 12px;
+                margin-bottom: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(245, 149, 99, 0.2);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="color: #f59563; font-weight: 600; font-size: 13px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${model.name}
+                        </div>
+                        <div style="color: #94a3b8; font-size: 11px;">
+                            ${model.agentName} • ${dateStr}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-left: 12px;">
+                        <button class="load-model-btn" data-model-id="${model.id}" style="
+                            background: rgba(245, 149, 99, 0.2);
+                            border: 1px solid rgba(245, 149, 99, 0.4);
+                            color: #f59563;
+                            border-radius: 6px;
+                            padding: 6px 12px;
+                            font-size: 11px;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            font-weight: 600;
+                        " title="Carregar modelo">
+                            <i class="fas fa-download"></i> Carregar
+                        </button>
+                        <button class="delete-model-btn" data-model-id="${model.id}" style="
+                            background: rgba(239, 68, 68, 0.2);
+                            border: 1px solid rgba(239, 68, 68, 0.4);
+                            color: #ef4444;
+                            border-radius: 6px;
+                            padding: 6px 12px;
+                            font-size: 11px;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            font-weight: 600;
+                        " title="Deletar modelo">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // Adiciona event listeners
+    listContainer.querySelectorAll('.trained-model-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(255, 255, 255, 0.08)';
+            this.style.borderColor = 'rgba(245, 149, 99, 0.4)';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(255, 255, 255, 0.05)';
+            this.style.borderColor = 'rgba(245, 149, 99, 0.2)';
+        });
+    });
+    
+    // Adiciona event listeners para botões de carregar
+    listContainer.querySelectorAll('.load-model-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modelId = this.dataset.modelId;
+            loadTrainedModel(modelId);
+            // Fecha o modal após carregar
+            const modal = document.getElementById('trained-models-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+        btn.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(245, 149, 99, 0.3)';
+            this.style.borderColor = 'rgba(245, 149, 99, 0.6)';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(245, 149, 99, 0.2)';
+            this.style.borderColor = 'rgba(245, 149, 99, 0.4)';
+        });
+    });
+    
+    // Adiciona event listeners para botões de deletar
+    listContainer.querySelectorAll('.delete-model-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modelId = this.dataset.modelId;
+            if (confirm('Tem certeza que deseja deletar este modelo?')) {
+                deleteTrainedModel(modelId);
+            }
+        });
+        btn.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(239, 68, 68, 0.3)';
+            this.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(239, 68, 68, 0.2)';
+            this.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        });
+    });
+}
+
+// Carrega um modelo treinado
+function loadTrainedModel(modelId) {
+    try {
+        const data = JSON.parse(localStorage.getItem(`trained_model_${modelId}`));
+        if (!data || !data.metadata) {
+            alert('Modelo não encontrado!');
+            return;
+        }
+        
+        // Troca para o tipo de agente do modelo
+        const agentSelect = document.getElementById('agent-select');
+        agentSelect.value = data.metadata.agentType;
+        switchAgent(data.metadata.agentType);
+        
+        // Carrega dados do modelo
+        if (agent.qTable && data.qTable) {
+            agent.qTable = new Map(Object.entries(data.qTable));
+        }
+        if (data.heuristicWeights && agent.weights) {
+            agent.weights = data.heuristicWeights;
+        }
+        if (agent.weights && data.weights && Array.isArray(data.weights)) {
+            agent.weights = data.weights;
+        }
+        if (data.networkWeights && agent.qNetwork) {
+            try {
+                const weights = data.networkWeights.map(w => tf.tensor(w));
+                agent.qNetwork.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos da rede neural:', e);
+            }
+        }
+        if (data.modelWeights && agent.model) {
+            try {
+                const weights = data.modelWeights.map(w => tf.tensor(w));
+                agent.model.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos do modelo:', e);
+            }
+        }
+        if (data.actorWeights && agent.actor) {
+            try {
+                const weights = data.actorWeights.map(w => tf.tensor(w));
+                agent.actor.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos do actor:', e);
+            }
+        }
+        if (data.criticWeights && agent.critic) {
+            try {
+                const weights = data.criticWeights.map(w => tf.tensor(w));
+                agent.critic.setWeights(weights);
+            } catch (e) {
+                console.warn('Erro ao carregar pesos do critic:', e);
+            }
+        }
+        if (data.population && agent.population) {
+            agent.population = data.population;
+            agent.generation = data.generation || 0;
+        }
+        
+        // Aplica parâmetros
+        if (data.parameters) {
+            loadAgentParametersFromData(data.parameters);
+        }
+        
+        alert(`Modelo "${data.metadata.name}" carregado com sucesso!`);
+    } catch (e) {
+        console.error('Erro ao carregar modelo:', e);
+        alert('Erro ao carregar modelo!');
+    }
+}
+
+// Carrega parâmetros de dados salvos
+function loadAgentParametersFromData(params) {
+    if (!agent) return;
+    
+    if (params.learningRate !== undefined && agent.setLearningRate) {
+        agent.setLearningRate(params.learningRate);
+        const slider = document.getElementById('learningrate-slider');
+        if (slider) slider.value = Math.round(params.learningRate * 100);
+    }
+    if (params.discountFactor !== undefined && agent.setDiscountFactor) {
+        agent.setDiscountFactor(params.discountFactor);
+        const slider = document.getElementById('discountfactor-slider');
+        if (slider) slider.value = Math.round(params.discountFactor * 100);
+    }
+    if (params.epsilon !== undefined && agent.setEpsilon) {
+        agent.setEpsilon(params.epsilon);
+        const slider = document.getElementById('epsilon-slider');
+        if (slider) slider.value = Math.round(params.epsilon * 100);
+    }
+    if (params.lambda !== undefined && agent.setLambda) {
+        agent.setLambda(params.lambda);
+        const slider = document.getElementById('lambda-slider');
+        if (slider) slider.value = Math.round(params.lambda * 100);
+    }
+    if (params.maxDepth !== undefined && agent.setMaxDepth) {
+        agent.setMaxDepth(params.maxDepth);
+        const slider = document.getElementById('depth-slider');
+        if (slider) slider.value = params.maxDepth;
+    }
+    if (params.depth !== undefined && agent.setMaxDepth) {
+        agent.setMaxDepth(params.depth);
+        const slider = document.getElementById('depth-slider');
+        if (slider) slider.value = params.depth;
+    }
+    if (params.simulations !== undefined && agent.setSimulations) {
+        agent.setSimulations(params.simulations);
+        const slider = document.getElementById('simulations-slider');
+        if (slider) slider.value = params.simulations;
+    }
+    if (params.explorationConstant !== undefined && agent.setExplorationConstant) {
+        agent.setExplorationConstant(params.explorationConstant);
+        const slider = document.getElementById('explorationconstant-slider');
+        if (slider) slider.value = Math.round(params.explorationConstant * 100);
+    }
+    if (params.mutationRate !== undefined && agent.setMutationRate) {
+        agent.setMutationRate(params.mutationRate);
+        const slider = document.getElementById('mutationrate-slider');
+        if (slider) slider.value = Math.round(params.mutationRate * 100);
+    }
+    if (params.beamWidth !== undefined && agent.setBeamWidth) {
+        agent.setBeamWidth(params.beamWidth);
+        const slider = document.getElementById('beamwidth-slider');
+        if (slider) slider.value = params.beamWidth;
+    }
+    
+    updateSliderValues();
+}
+
+// Deleta um modelo treinado
+function deleteTrainedModel(modelId) {
+    try {
+        localStorage.removeItem(`trained_model_${modelId}`);
+        updateTrainedModelsList();
+        console.log(`Modelo ${modelId} deletado com sucesso!`);
+    } catch (e) {
+        console.error('Erro ao deletar modelo:', e);
+        alert('Erro ao deletar modelo!');
+    }
+}
+
+// Carrega parâmetros salvos do agente
+function loadAgentParameters(agentType) {
+    try {
+        const saved = localStorage.getItem(`agent_${agentType}`);
+        if (saved && agent) {
+            const data = JSON.parse(saved);
+            if (data.parameters) {
+                const params = data.parameters;
+                
+                // Aplica parâmetros de aprendizado
+                if (params.learningRate !== undefined && agent.setLearningRate) {
+                    agent.setLearningRate(params.learningRate);
+                    const slider = document.getElementById('learningrate-slider');
+                    if (slider) slider.value = Math.round(params.learningRate * 100);
+                }
+                if (params.discountFactor !== undefined && agent.setDiscountFactor) {
+                    agent.setDiscountFactor(params.discountFactor);
+                    const slider = document.getElementById('discountfactor-slider');
+                    if (slider) slider.value = Math.round(params.discountFactor * 100);
+                }
+                if (params.epsilon !== undefined && agent.setEpsilon) {
+                    agent.setEpsilon(params.epsilon);
+                    const slider = document.getElementById('epsilon-slider');
+                    if (slider) slider.value = Math.round(params.epsilon * 100);
+                }
+                if (params.lambda !== undefined && agent.setLambda) {
+                    agent.setLambda(params.lambda);
+                    const slider = document.getElementById('lambda-slider');
+                    if (slider) slider.value = Math.round(params.lambda * 100);
+                }
+                
+                // Aplica parâmetros de busca
+                if (params.maxDepth !== undefined && agent.setMaxDepth) {
+                    agent.setMaxDepth(params.maxDepth);
+                    const slider = document.getElementById('depth-slider');
+                    if (slider) slider.value = params.maxDepth;
+                }
+                if (params.depth !== undefined && agent.setMaxDepth) {
+                    agent.setMaxDepth(params.depth);
+                    const slider = document.getElementById('depth-slider');
+                    if (slider) slider.value = params.depth;
+                }
+                if (params.simulations !== undefined && agent.setSimulations) {
+                    agent.setSimulations(params.simulations);
+                    const slider = document.getElementById('simulations-slider');
+                    if (slider) slider.value = params.simulations;
+                }
+                if (params.explorationConstant !== undefined && agent.setExplorationConstant) {
+                    agent.setExplorationConstant(params.explorationConstant);
+                    const slider = document.getElementById('explorationconstant-slider');
+                    if (slider) slider.value = Math.round(params.explorationConstant * 100);
+                }
+                if (params.mutationRate !== undefined && agent.setMutationRate) {
+                    agent.setMutationRate(params.mutationRate);
+                    const slider = document.getElementById('mutationrate-slider');
+                    if (slider) slider.value = Math.round(params.mutationRate * 100);
+                }
+                if (params.beamWidth !== undefined && agent.setBeamWidth) {
+                    agent.setBeamWidth(params.beamWidth);
+                    const slider = document.getElementById('beamwidth-slider');
+                    if (slider) slider.value = params.beamWidth;
+                }
+                
+                // Atualiza valores exibidos
+                updateSliderValues();
+            }
+        }
+    } catch (e) {
+        console.warn('Erro ao carregar parâmetros do agente:', e);
+    }
+}
+
+// Atualiza valores exibidos nos sliders
+function updateSliderValues() {
+    const depthValue = document.getElementById('depth-value');
+    const simulationsValue = document.getElementById('simulations-value');
+    const epsilonValue = document.getElementById('epsilon-value');
+    const learningRateValue = document.getElementById('learningrate-value');
+    const discountFactorValue = document.getElementById('discountfactor-value');
+    const lambdaValue = document.getElementById('lambda-value');
+    const explorationConstantValue = document.getElementById('explorationconstant-value');
+    const mutationRateValue = document.getElementById('mutationrate-value');
+    const beamWidthValue = document.getElementById('beamwidth-value');
+    
+    const depthSlider = document.getElementById('depth-slider');
+    const simulationsSlider = document.getElementById('simulations-slider');
+    const epsilonSlider = document.getElementById('epsilon-slider');
+    const learningRateSlider = document.getElementById('learningrate-slider');
+    const discountFactorSlider = document.getElementById('discountfactor-slider');
+    const lambdaSlider = document.getElementById('lambda-slider');
+    const explorationConstantSlider = document.getElementById('explorationconstant-slider');
+    const mutationRateSlider = document.getElementById('mutationrate-slider');
+    const beamWidthSlider = document.getElementById('beamwidth-slider');
+    
+    if (depthSlider && depthValue) depthValue.textContent = depthSlider.value;
+    if (simulationsSlider && simulationsValue) simulationsValue.textContent = simulationsSlider.value;
+    if (epsilonSlider && epsilonValue) epsilonValue.textContent = (parseInt(epsilonSlider.value) / 100).toFixed(2);
+    if (learningRateSlider && learningRateValue) learningRateValue.textContent = (parseInt(learningRateSlider.value) / 100).toFixed(2);
+    if (discountFactorSlider && discountFactorValue) discountFactorValue.textContent = (parseInt(discountFactorSlider.value) / 100).toFixed(2);
+    if (lambdaSlider && lambdaValue) lambdaValue.textContent = (parseInt(lambdaSlider.value) / 100).toFixed(2);
+    if (explorationConstantSlider && explorationConstantValue) explorationConstantValue.textContent = (parseInt(explorationConstantSlider.value) / 100).toFixed(2);
+    if (mutationRateSlider && mutationRateValue) mutationRateValue.textContent = (parseInt(mutationRateSlider.value) / 100).toFixed(2);
+    if (beamWidthSlider && beamWidthValue) beamWidthValue.textContent = beamWidthSlider.value;
+}
+
+// Salva modelo com parâmetros de calibração
+function saveAgentModel() {
+    if (!agent) return;
+    
+    const agentType = document.getElementById('agent-select').value;
+    const data = {};
+    
+    // Salva dados aprendidos (para modelos de aprendizado)
+    if (agent.qTable) {
+        data.qTable = Object.fromEntries(agent.qTable);
+    }
+    if (agent.weights && typeof agent.weights === 'object' && !Array.isArray(agent.weights)) {
+        // Para WeightedHeuristicAgent, salva os pesos heurísticos
+        data.heuristicWeights = agent.weights;
+    }
+    if (agent.weights && Array.isArray(agent.weights)) {
+        // Para outros modelos que usam weights como array
+        data.weights = agent.weights;
+    }
+    if (agent.qNetwork) {
+        // Para DQN
+        try {
+            const weights = agent.qNetwork.getWeights();
+            data.networkWeights = weights.map(w => w.arraySync());
+        } catch (e) {
+            console.warn('Erro ao salvar pesos da rede neural:', e);
+        }
+    }
+    if (agent.model) {
+        // Para PolicyGradient, NeuralNetwork
+        try {
+            const weights = agent.model.getWeights();
+            data.modelWeights = weights.map(w => w.arraySync());
+        } catch (e) {
+            console.warn('Erro ao salvar pesos do modelo:', e);
+        }
+    }
+    if (agent.actor) {
+        // Para ActorCritic
+        try {
+            const actorWeights = agent.actor.getWeights();
+            data.actorWeights = actorWeights.map(w => w.arraySync());
+        } catch (e) {
+            console.warn('Erro ao salvar pesos do actor:', e);
+        }
+    }
+    if (agent.critic) {
+        // Para ActorCritic
+        try {
+            const criticWeights = agent.critic.getWeights();
+            data.criticWeights = criticWeights.map(w => w.arraySync());
+        } catch (e) {
+            console.warn('Erro ao salvar pesos do critic:', e);
+        }
+    }
+    if (agent.population) {
+        // Para GeneticAlgorithmAgent
+        data.population = agent.population;
+        data.generation = agent.generation;
+    }
+    
+    // Salva parâmetros de calibração
+    data.parameters = {};
+    
+    // Parâmetros de aprendizado
+    if (agent.learningRate !== undefined) {
+        data.parameters.learningRate = agent.learningRate;
+    }
+    if (agent.discountFactor !== undefined) {
+        data.parameters.discountFactor = agent.discountFactor;
+    }
+    if (agent.epsilon !== undefined) {
+        data.parameters.epsilon = agent.epsilon;
+    }
+    if (agent.lambda !== undefined) {
+        data.parameters.lambda = agent.lambda;
+    }
+    
+    // Parâmetros de busca
+    if (agent.maxDepth !== undefined) {
+        data.parameters.maxDepth = agent.maxDepth;
+    }
+    if (agent.depth !== undefined) {
+        data.parameters.depth = agent.depth;
+    }
+    if (agent.simulations !== undefined) {
+        data.parameters.simulations = agent.simulations;
+    }
+    if (agent.explorationConstant !== undefined) {
+        data.parameters.explorationConstant = agent.explorationConstant;
+    }
+    if (agent.mutationRate !== undefined) {
+        data.parameters.mutationRate = agent.mutationRate;
+    }
+    if (agent.beamWidth !== undefined) {
+        data.parameters.beamWidth = agent.beamWidth;
+    }
+    if (agent.populationSize !== undefined) {
+        data.parameters.populationSize = agent.populationSize;
+    }
+    
+    // Parâmetros específicos do DQN
+    if (agent.batchSize !== undefined) {
+        data.parameters.batchSize = agent.batchSize;
+    }
+    if (agent.bufferSize !== undefined) {
+        data.parameters.bufferSize = agent.bufferSize;
+    }
+    if (agent.updateTargetSteps !== undefined) {
+        data.parameters.updateTargetSteps = agent.updateTargetSteps;
+    }
+    
+    // Salva valores dos sliders como fallback
+    const depthSlider = document.getElementById('depth-slider');
+    const simulationsSlider = document.getElementById('simulations-slider');
+    const epsilonSlider = document.getElementById('epsilon-slider');
+    const learningRateSlider = document.getElementById('learningrate-slider');
+    const discountFactorSlider = document.getElementById('discountfactor-slider');
+    const lambdaSlider = document.getElementById('lambda-slider');
+    const explorationConstantSlider = document.getElementById('explorationconstant-slider');
+    const mutationRateSlider = document.getElementById('mutationrate-slider');
+    const beamWidthSlider = document.getElementById('beamwidth-slider');
+    
+    if (depthSlider) {
+        data.parameters.depth = parseInt(depthSlider.value);
+    }
+    if (simulationsSlider) {
+        data.parameters.simulations = parseInt(simulationsSlider.value);
+    }
+    if (epsilonSlider) {
+        data.parameters.epsilon = parseInt(epsilonSlider.value) / 100;
+    }
+    if (learningRateSlider) {
+        data.parameters.learningRate = parseInt(learningRateSlider.value) / 100;
+    }
+    if (discountFactorSlider) {
+        data.parameters.discountFactor = parseInt(discountFactorSlider.value) / 100;
+    }
+    if (lambdaSlider) {
+        data.parameters.lambda = parseInt(lambdaSlider.value) / 100;
+    }
+    if (explorationConstantSlider) {
+        data.parameters.explorationConstant = parseFloat(explorationConstantSlider.value);
+    }
+    if (mutationRateSlider) {
+        data.parameters.mutationRate = parseFloat(mutationRateSlider.value);
+    }
+    if (beamWidthSlider) {
+        data.parameters.beamWidth = parseInt(beamWidthSlider.value);
+    }
+    
+    try {
+        // Solicita nome do modelo
+        const modelName = prompt('Digite um nome para este modelo treinado:', `${agentType}_${new Date().toLocaleDateString()}`);
+        if (!modelName || modelName.trim() === '') {
+            console.log('Salvamento cancelado - nome não fornecido');
+            return;
+        }
+        
+        // Cria ID único para o modelo
+        const modelId = `trained_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Adiciona metadados
+        data.metadata = {
+            id: modelId,
+            name: modelName.trim(),
+            agentType: agentType,
+            savedAt: new Date().toISOString(),
+            agentName: agent.name
+        };
+        
+        // Salva modelo nomeado
+        localStorage.setItem(`trained_model_${modelId}`, JSON.stringify(data));
+        
+        // Mantém compatibilidade: também salva como modelo padrão do tipo
+        localStorage.setItem(`agent_${agentType}`, JSON.stringify(data));
+        
+        // Atualiza lista de modelos treinados
+        updateTrainedModelsList();
+        
+        console.log(`Modelo "${modelName}" salvo com sucesso!`);
+        
+        // Feedback visual melhorado
+        const btn = document.getElementById('btn-save');
+        const originalText = btn.textContent;
+        btn.textContent = `✓ "${modelName}" salvo!`;
+        btn.style.background = 'rgba(76, 175, 80, 0.3)';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+        }, 3000);
+    } catch (e) {
+        console.warn('Erro ao salvar modelo:', e);
+        alert('Erro ao salvar modelo. Verifique o espaço disponível no navegador.');
+    }
 }
 
 // Troca de agente
@@ -282,6 +930,10 @@ function switchAgent(agentType) {
             agent = new RandomAgent();
     }
     
+    // Carrega parâmetros salvos se existirem
+    loadAgentParameters(agentType);
+    
+    // Salva modelo após criar
     // Mostra/esconde controles
     const depthControl = document.getElementById('depth-control');
     const simulationsControl = document.getElementById('simulations-control');
@@ -928,7 +1580,8 @@ function toggleTraining() {
 // Inicia treinamento
 function startTraining() {
     isRunning = true;
-    document.getElementById('btn-run').textContent = '⏸ Pausar';
+    const btnRun = document.getElementById('btn-run');
+    btnRun.innerHTML = '<i class="fas fa-pause"></i> Pausar';
     startTimer();
     speedStartTime = Date.now();
 }
@@ -936,7 +1589,8 @@ function startTraining() {
 // Para treinamento
 function stopTraining() {
     isRunning = false;
-    document.getElementById('btn-run').textContent = '▶ Iniciar';
+    const btnRun = document.getElementById('btn-run');
+    btnRun.innerHTML = '<i class="fas fa-play"></i> Iniciar';
     stopTimer();
 }
 
