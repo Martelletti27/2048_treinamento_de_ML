@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 - Treinamento de IA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="layout-wrapper">
+        <!-- Painel Esquerdo: Controle de Treino -->
+        <div class="sidebar left-sidebar">
+            <h3>Controle de Treino</h3>
+            
+                <div class="control-group">
+                    <label for="agent-select">Modelo:</label>
+                    <select id="agent-select">
+                        <option value="random">Random</option>
+                        <option value="greedy">Greedy</option>
+                        <option value="heuristic">Heuristic</option>
+                        <option value="weightedheuristic">Weighted Heuristic</option>
+                        <option value="minimax">Minimax</option>
+                        <option value="alphabeta">Alpha-Beta</option>
+                        <option value="expectimax">Expectimax</option>
+                        <option value="montecarlo">Monte Carlo</option>
+                        <option value="qlearning">Q-Learning</option>
+                    </select>
+                </div>
+                
+                <!-- Controle de Profundidade para Expectimax e Minimax -->
+                <div class="control-group" id="depth-control" style="display: none;">
+                    <label for="depth-slider">Profundidade:</label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="depth-slider" min="1" max="5" value="3" step="1">
+                        <span id="depth-value">3</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Simulações para Monte Carlo -->
+                <div class="control-group" id="simulations-control" style="display: none;">
+                    <label for="simulations-slider">Simulações:</label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="simulations-slider" min="10" max="200" value="50" step="10">
+                        <span id="simulations-value">50</span>
+                    </div>
+                </div>
+                
+                <!-- Controle de Epsilon para Q-Learning -->
+                <div class="control-group" id="epsilon-control" style="display: none;">
+                    <label for="epsilon-slider">Exploração (ε):</label>
+                    <div class="depth-control-wrapper">
+                        <input type="range" id="epsilon-slider" min="0" max="100" value="10" step="5">
+                        <span id="epsilon-value">0.1</span>
+                    </div>
+                </div>
+            
+            <div class="control-group buttons-group">
+                <button id="btn-run">▶ Iniciar</button>
+                <button id="btn-reset">↻ Reset</button>
+            </div>
+            
+            <!-- Explicação do Modelo -->
+            <div class="model-explanation">
+                <div id="model-description" class="model-description">
+                    <h4>Sobre o Modelo Random</h4>
+                    <p>O modelo <strong>Random</strong> é a abordagem mais simples: ele escolhe movimentos completamente aleatórios a cada turno, sem considerar o estado atual do jogo.</p>
+                    <p><strong>Como funciona:</strong> A cada movimento, o agente seleciona aleatoriamente uma das quatro direções possíveis (cima, baixo, esquerda, direita), independentemente de qual seria a melhor escolha.</p>
+                    <p><strong>Vantagens:</strong> Implementação muito simples e rápida.</p>
+                    <p><strong>Desvantagens:</strong> Não aprende nem usa estratégia, resultando em pontuações geralmente baixas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Central: Grade de Jogos e Monitor -->
+        <div class="center-panel">
+            <!-- Título Treinamento -->
+            <h3 class="training-title">Treinamento</h3>
+            
+            <!-- Monitor de Treino -->
+            <div class="training-monitor">
+                <div class="monitor-item">
+                    <div class="monitor-label">Jogos Finalizados</div>
+                    <div class="monitor-value" id="games-finished">0</div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-label">Tempo Decorrido</div>
+                    <div class="monitor-value" id="train-time">00:00:00</div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-label">Velocidade (MPS)</div>
+                    <div class="monitor-value" id="speed">0</div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-label">Peça Recorde</div>
+                    <div class="monitor-value" id="best-tile">0</div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-label">Score Médio</div>
+                    <div class="monitor-value" id="avg-score">0</div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-label">Taxa de Sucesso</div>
+                    <div class="monitor-value" id="success-rate">0%</div>
+                    <div class="monitor-subvalue" id="games-2048-count">0 com 2048</div>
+                </div>
+            </div>
+
+            <!-- Grade de 100 Jogos -->
+            <div class="game-container">
+                <canvas id="game-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Painel Direito: Melhor Indivíduo -->
+        <div class="sidebar right-sidebar">
+            <h3>Análise</h3>
+            
+            <!-- Melhor Indivíduo Ever -->
+            <div class="best-individual-label">Melhor Indivíduo Ever</div>
+            
+            <!-- Grid do melhor agente -->
+            <div class="best-individual-wrapper">
+                <div id="best-agent-grid" class="best-agent-grid"></div>
+                <div class="best-individual-info">
+                    <div class="best-individual-explanation">
+                        Melhor jogo finalizado de todos os tempos. Considera apenas jogos que terminaram.
+                    </div>
+                    <!-- Pontuação Máxima -->
+                    <div class="best-score-text">
+                        Pontuação Máxima: <span id="best-individual-score">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Heatmap de Posições -->
+            <div class="metric-card heatmap-card">
+                <div class="metric-label">Heatmap de Posições</div>
+                <div class="heatmap-wrapper">
+                    <div id="position-heatmap" class="best-agent-grid"></div>
+                    <div class="heatmap-explanation">
+                        Frequência de onde a maior peça aparece em cada posição
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Distribuição de Pontuações -->
+            <div class="metric-card">
+                <div class="metric-label">Distribuição de Pontuações</div>
+                <canvas id="score-distribution-chart" class="metric-chart"></canvas>
+            </div>
+            
+            <!-- Gráfico de Linha - Melhor Indivíduo por Segundo -->
+            <div class="metric-card">
+                <div class="metric-label">Melhor Indivíduo por Segundo</div>
+                <canvas id="best-score-timeline-chart" class="metric-chart"></canvas>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="js/Game2048.js"></script>
+    <script src="js/agents/RandomAgent.js"></script>
+    <script src="js/agents/GreedyAgent.js"></script>
+    <script src="js/agents/HeuristicAgent.js"></script>
+    <script src="js/agents/WeightedHeuristicAgent.js"></script>
+    <script src="js/agents/MinimaxAgent.js"></script>
+    <script src="js/agents/AlphaBetaAgent.js"></script>
+    <script src="js/agents/ExpectimaxAgent.js"></script>
+    <script src="js/agents/MonteCarloAgent.js"></script>
+    <script src="js/agents/QLearningAgent.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+

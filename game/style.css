@@ -1,0 +1,75 @@
+body {
+    background-color: #faf8ef;
+    font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container { width: 400px; }
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.score-container {
+    background: #bbada0;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.grid {
+    background: #bbada0;
+    width: 400px;
+    height: 400px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 6px;
+}
+
+.tile {
+    width: 85px;
+    height: 85px;
+    background: rgba(238, 228, 218, 0.35);
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 35px;
+    font-weight: bold;
+    color: #776e65;
+}
+
+/* Cores das Peças */
+.tile-2 { background: #eee4da; }
+.tile-4 { background: #ede0c8; }
+.tile-8 { background: #f2b179; color: white; }
+.tile-16 { background: #f59563; color: white; }
+.tile-32 { background: #f67c5f; color: white; }
+.tile-64 { background: #f65e3b; color: white; }
+.tile-128 { background: #edcf72; color: white; font-size: 30px; }
+.tile-256 { background: #edcc61; color: white; font-size: 30px; }
+.tile-512 { background: #edc850; color: white; font-size: 30px; }
+.tile-1024 { background: #edc53f; color: white; font-size: 25px; }
+.tile-2048 { background: #edc22e; color: white; font-size: 25px; }
+
+button {
+    background: #8f7a66;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+}
