@@ -1,15 +1,29 @@
-// Configurações
-const POPULATION_SIZE = 100;
-const CANVAS_SIZE = 680;
-const GRID_COLS = 10;
-const GRID_ROWS = 10;
-const CELL_SIZE = CANVAS_SIZE / GRID_COLS; // 10x10 grid de jogos
+/**
+ * ============================================
+ * SISTEMA DE TREINAMENTO DE IA PARA 2048
+ * ============================================
+ * 
+ * Este sistema implementa um laboratório de treinamento e análise de algoritmos
+ * de IA para o jogo 2048. Executa 100 jogos simultâneos, coletando métricas
+ * detalhadas e permitindo calibração de parâmetros para cada modelo.
+ */
 
-// Estado global
-let population = [];
-let agent = null;
-let isRunning = false;
-let bestIndividualIndex = 0;
+// ============================================
+// CONFIGURAÇÕES
+// ============================================
+const POPULATION_SIZE = 100; // Número de jogos simultâneos
+const CANVAS_SIZE = 680; // Tamanho do canvas em pixels
+const GRID_COLS = 10; // Colunas do grid de visualização
+const GRID_ROWS = 10; // Linhas do grid de visualização
+const CELL_SIZE = CANVAS_SIZE / GRID_COLS; // Tamanho de cada célula no canvas
+
+// ============================================
+// ESTADO GLOBAL
+// ============================================
+let population = []; // Array de 100 instâncias do jogo 2048
+let agent = null; // Agente de IA atualmente selecionado
+let isRunning = false; // Flag indicando se o treinamento está ativo
+let bestIndividualIndex = 0; // Índice do melhor jogo atual (entre jogos ativos)
 
 // Métricas
 let gamesFinished = 0;
@@ -52,7 +66,10 @@ let first2048Reached = new Map(); // Mapeia índice do jogo para se já atingiu 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
-// Inicialização
+/**
+ * Inicializa o sistema de treinamento
+ * Configura canvas, população de jogos, eventos e interface
+ */
 function init() {
     // Configura canvas - tamanho interno (resolução)
     canvas.width = CANVAS_SIZE;
@@ -248,7 +265,10 @@ function init() {
     trainingLoop();
 }
 
-// Atualiza lista de modelos treinados
+/**
+ * Atualiza a lista de modelos treinados no modal
+ * Busca todos os modelos salvos no localStorage e renderiza na interface
+ */
 function updateTrainedModelsList() {
     const listContainer = document.getElementById('trained-models-list');
     if (!listContainer) return;
@@ -650,7 +670,12 @@ function updateSliderValues() {
     if (beamWidthSlider && beamWidthValue) beamWidthValue.textContent = beamWidthSlider.value;
 }
 
-// Salva modelo com parâmetros de calibração
+/**
+ * Salva o modelo atual treinado no localStorage
+ * Permite que o usuário dê um nome personalizado ao modelo
+ * Salva dados aprendidos (Q-tables, pesos de rede, etc.) e parâmetros de calibração
+ * @returns {void}
+ */
 function saveAgentModel() {
     if (!agent) return;
     
@@ -847,7 +872,11 @@ function saveAgentModel() {
     }
 }
 
-// Troca de agente
+/**
+ * Troca o agente de IA ativo
+ * Cria nova instância do agente selecionado e carrega parâmetros salvos
+ * @param {string} agentType - Tipo do agente ('random', 'greedy', 'qlearning', etc.)
+ */
 function switchAgent(agentType) {
     const wasRunning = isRunning;
     
@@ -1168,7 +1197,11 @@ function updateModelDescription(agentType) {
     }
 }
 
-// Renderiza população no canvas
+/**
+ * Renderiza todos os 100 jogos no canvas
+ * Organiza em grid 10x10, desenha cada jogo como um mini-grid
+ * Atualiza melhor indivíduo atual e melhor de todos os tempos
+ */
 function renderPopulation() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1335,7 +1368,11 @@ function renderBestAgent() {
     }
 }
 
-// Loop de treinamento
+/**
+ * Loop principal de treinamento
+ * Executa movimentos em todos os jogos da população e atualiza métricas
+ * Chama a si mesmo recursivamente para manter o loop ativo
+ */
 function trainingLoop() {
     if (!isRunning) {
         // Continua o loop mesmo quando pausado para manter renderização
@@ -1568,7 +1605,9 @@ function stopTimer() {
     startTime = 0;
 }
 
-// Alterna treinamento
+/**
+ * Alterna entre iniciar e pausar o treinamento
+ */
 function toggleTraining() {
     if (isRunning) {
         stopTraining();
@@ -1577,7 +1616,10 @@ function toggleTraining() {
     }
 }
 
-// Inicia treinamento
+/**
+ * Inicia o treinamento
+ * Ativa o loop de treinamento e atualiza a interface
+ */
 function startTraining() {
     isRunning = true;
     const btnRun = document.getElementById('btn-run');
@@ -1586,7 +1628,10 @@ function startTraining() {
     speedStartTime = Date.now();
 }
 
-// Para treinamento
+/**
+ * Para o treinamento
+ * Desativa o loop de treinamento e atualiza a interface
+ */
 function stopTraining() {
     isRunning = false;
     const btnRun = document.getElementById('btn-run');
@@ -1594,7 +1639,10 @@ function stopTraining() {
     stopTimer();
 }
 
-// Reseta sistema
+/**
+ * Reseta todo o sistema de treinamento
+ * Reinicia todos os jogos, limpa métricas e gráficos
+ */
 function resetSystem() {
     stopTraining();
     

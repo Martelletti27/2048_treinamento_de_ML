@@ -2,9 +2,10 @@
 // CLASH OF INTELLIGENCE - LÓGICA PRINCIPAL
 // ============================================
 
-// Estado Global
-let combatants = [];
-let workers = [];
+// ============================================
+// ESTADO GLOBAL
+// ============================================
+let combatants = []; // Array de modelos competindo na arena
 let isCombatRunning = false;
 let isCombatPaused = false;
 let combatStartTime = 0;
@@ -596,7 +597,6 @@ function showCountdown(callback) {
 // Inicia combate após countdown
 function startCombatAfterCountdown(selectedModels) {
     combatants = [];
-    workers = [];
     podium = { first: null, second: null, third: null };
     combatStartTime = performance.now();
     totalPausedTime = 0;
@@ -893,8 +893,6 @@ function resetCombat() {
     isCombatRunning = false;
     isCombatPaused = false;
     combatants = [];
-    workers.forEach(w => w.terminate());
-    workers = [];
     podium = { first: null, second: null, third: null };
     combatStartTime = 0;
     totalPausedTime = 0;
